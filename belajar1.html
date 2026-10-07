@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tempat Belajar Mike</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  /* ANIMASI BACKGROUND SAINS */
+  body {
+    background: linear-gradient(135deg, #0f172a, #1e3a8a, #0f172a);
+    background-size: 400% 400%;
+    animation: gradientGerak 15s ease infinite;
+    color: #f8fafc;
+    font-family: 'Nunito', sans-serif;
+    margin: 0 auto;
+    padding: 16px;
+    max-width: 600px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Grid ala kertas matematika/sains */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+    z-index: -2;
+  }
+
+  /* Ornamen Sains Transparan di Background */
+  body::after {
+    content: "⚛️ 🔬 🔭 🪐 🧬";
+    position: fixed;
+    top: 10%; left: 0; right: 0;
+    font-size: 60px;
+    opacity: 0.05;
+    letter-spacing: 20vw;
+    line-height: 40vh;
+    z-index: -1;
+    pointer-events: none;
+    text-align: center;
+  }
+
+  @keyframes gradientGerak {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* ANIMASI KONTEN MUNCUL */
+  @keyframes muncul {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animasi-halaman {
+    animation: muncul 0.6s ease-out forwards;
+  }
+
+  h1, h2 { color: #38bdf8; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+  
+  /* DESAIN TOMBOL */
+  .btn {
+    display: block; width: 100%; margin: 10px 0; padding: 15px;
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(10px); /* Efek Kaca */
+    color: #fff;
+    border: 1px solid #38bdf8;
+    border-radius: 12px;
+    font-size: 16px; font-weight: 600; text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Nunito', sans-serif;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  }
+  .btn:hover { background: #38bdf8; color: #0f172a; transform: translateY(-2px); }
+  .btn.ok { border-color: #22c55e; background: rgba(22, 163, 74, 0.3); }
+  
+  /* TOMBOL KHUSUS BIRU */
+  .biru { background: #38bdf8; color: #0f172a; text-align: center; font-weight: 800; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+  .biru:hover { background: #0284c7; color: #fff; }
+
+  /* KOTAK KONTEN EFEK GLASSMORPHISM */
+  .kotak {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px; padding: 16px; margin: 12px 0; line-height: 1.6;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  }
+
+  /* WARNA JAWABAN */
+  .benar { background: #166534 !important; color: white !important; border-color:#22c55e; }
+  .salah { background: #991b1b !important; color: white !important; border-color:#ef4444; }
+  
+  input {
+    width: 65%; padding: 12px; border-radius: 10px; border: 1px solid #334155; 
+    font-size: 16px; background: rgba(255,255,255,0.9); font-family: 'Nunito', sans-serif;
+  }
+  .kecil { color: #cbd5e1; font-size: 14px; font-style: italic; }
+  
+  #tutor { margin-top: 30px; border-top: 2px dashed rgba(255,255,255,0.2); padding-top: 20px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="tutor">
+  <h2>🤖 Tutor Belajar Bawaan</h2>
+  <div class="kotak" id="jawabTutor">Tanya soal materi yang ada di web ini, misalnya: pecahan, persen, atau luas.</div>
+  <input id="tanya" placeholder="Tulis pertanyaanmu di sini...">
+  <button class="btn biru" style="display:inline-block;width:30%;margin-left:2%;text-align:center;padding:12px;" onclick="tanyaTutor()">Tanya</button>
+  <p class="kecil">*Tutor bawaan ini menjawab dari materi di web, bukan AI sungguhan.</p>
+</div>
+
+<script>
+var KELAS = { SMP:[7,8,9], SMA:[10,11,12] };
+var MAPEL = { SMP:["Matematika","IPA","Bahasa Inggris","IPS"], SMA:["Matematika","Fisika","Kimia","Biologi","Bahasa Inggris"] };
+
+/* ISI MATERI: Data tetap sama, agar aman dan lengkap */
+var ISI = {
+"7|Matematika":[
+ {judul:"Bilangan dan Operasi", kata:["bilangan","tambah","kurang","kali","bagi","urutan","negatif"],
+  teks:"Bilangan bulat mencakup bilangan negatif, nol, dan positif. Urutan menghitung: kurung dulu, lalu pangkat, lalu kali/bagi, terakhir tambah/kurang.",
+  contoh:"Contoh: 2 + 3 × 4 = 2 + 12 = 14 (bukan 20, karena kali didahulukan).",
+  soal:[["5 + 2 × 3 = ?",["21","11","10","13"],1,"Kali dulu: 2 × 3 = 6, lalu 5 + 6 = 11."],
+        ["-3 + 8 = ?",["-11","5","-5","11"],1,"Mulai dari -3, naik 8 langkah, hasilnya 5."],
+        ["12 ÷ (2 + 4) = ?",["2","8","6","14"],0,"Kurung dulu: 2 + 4 = 6, lalu 12 ÷ 6 = 2."]]},
+ {judul:"Pecahan", kata:["pecahan","penyebut","pembilang","sederhana"],
+  teks:"Pecahan = pembilang/penyebut. Menjumlah pecahan: samakan penyebutnya dulu. Mengalikan: pembilang × pembilang, penyebut × penyebut. Menyederhanakan: bagi atas dan bawah dengan angka yang sama.",
+  contoh:"Contoh: 1/2 + 1/4 = 2/4 + 1/4 = 3/4.",
+  soal:[["1/2 + 1/4 = ?",["2/6","3/4","1/6","2/4"],1,"1/2 = 2/4, jadi 2/4 + 1/4 = 3/4."],
+        ["2/3 × 3/5 = ?",["2/5","5/8","6/8","1/5"],0,"(2×3)/(3×5) = 6/15 = 2/5."],
+        ["Sederhanakan 6/8",["3/4","2/3","1/2","6/4"],0,"Bagi atas dan bawah dengan 2, hasilnya 3/4."]]},
+ {judul:"Persen", kata:["persen","diskon","persentase","%"],
+  teks:"Persen artinya per seratus. 25% = 25/100 = 1/4. Mencari persen dari suatu angka: kalikan angka itu dengan persen/100.",
+  contoh:"Contoh: diskon 20% dari Rp50.000 = 50.000 × 20/100 = Rp10.000, jadi bayar Rp40.000.",
+  soal:[["25% dari 80 = ?",["20","25","32","16"],0,"80 × 25/100 = 20."],
+        ["Harga 50.000 diskon 20%. Harga bayar?",["10.000","40.000","30.000","45.000"],1,"Diskon 10.000, jadi bayar 50.000 - 10.000 = 40.000."],
+        ["3/4 sama dengan?",["34%","60%","75%","80%"],2,"3 ÷ 4 = 0,75 = 75%."]]},
+ {judul:"Aljabar Dasar", kata:["aljabar","variabel","suku","huruf"],
+  teks:"Aljabar memakai huruf (variabel) untuk mewakili angka. Suku sejenis bisa dijumlah. Mengganti huruf dengan angka disebut substitusi.",
+  contoh:"Contoh: 3x + 2x = 5x. Jika x = 4, maka 2x + 1 = 9.",
+  soal:[["3x + 2x = ?",["5x","6x","5x²","x"],0,"3 + 2 = 5, jadi 5x."],
+        ["Jika x = 4, nilai 2x + 1 = ?",["8","9","10","7"],1,"2 × 4 + 1 = 9."],
+        ["Sederhanakan 4a - a + 2",["3a + 2","4a + 2","5a","3a - 2"],0,"4a - a = 3a, lalu tambah 2."]]},
+ {judul:"Persamaan Linear Satu Variabel", kata:["persamaan","linear","cari x","ruas"],
+  teks:"Persamaan dipecahkan dengan menjaga kedua sisi tetap seimbang. Apa pun yang dilakukan ke satu sisi harus dilakukan ke sisi lain.",
+  contoh:"Contoh: x + 5 = 12. Kurangi 5 di kedua sisi, jadi x = 7.",
+  soal:[["x + 5 = 12, maka x = ?",["17","7","6","8"],1,"12 - 5 = 7."],
+        ["2x = 18, maka x = ?",["36","16","9","20"],2,"18 ÷ 2 = 9."],
+        ["3x - 4 = 11, maka x = ?",["5","3","7","15"],0,"3x = 15, jadi x = 5."]]},
+ {judul:"Geometri Dasar", kata:["geometri","luas","keliling","segitiga","persegi","lingkaran"],
+  teks:"Luas persegi panjang = panjang × lebar. Keliling persegi = 4 × sisi. Luas segitiga = 1/2 × alas × tinggi.",
+  contoh:"Contoh: segitiga alas 10 dan tinggi 6, luasnya 1/2 × 10 × 6 = 30.",
+  soal:[["Luas persegi panjang 8 × 5 = ?",["26","40","13","80"],1,"8 × 5 = 40."],
+        ["Keliling persegi sisi 6 = ?",["12","36","24","18"],2,"4 × 6 = 24."],
+        ["Luas segitiga alas 10, tinggi 6 = ?",["60","30","16","32"],1,"1/2 × 10 × 6 = 30."]]},
+ {judul:"Perbandingan", kata:["perbandingan","skala","senilai"],
+  teks:"Perbandingan membandingkan dua besaran. 2 : 3 artinya tiap 2 bagian pertama ada 3 bagian kedua. Pada perbandingan senilai, jika satu naik maka yang lain ikut naik.",
+  contoh:"Contoh: 2 buku harga 10.000, maka 6 buku harga 30.000.",
+  soal:[["Kelereng A : B = 2 : 3. Jika A = 6, maka B = ?",["9","8","12","4"],0,"6 ÷ 2 = 3, lalu 3 × 3 = 9."],
+        ["3 pensil Rp6.000. Harga 5 pensil?",["Rp8.000","Rp10.000","Rp12.000","Rp15.000"],1,"1 pensil Rp2.000, jadi 5 pensil Rp10.000."],
+        ["Sederhanakan 12 : 18",["2 : 3","3 : 4","6 : 9","4 : 5"],0,"Bagi keduanya dengan 6."]]},
+ {judul:"Sudut", kata:["sudut","derajat","penyiku","pelurus"],
+  teks:"Jumlah sudut dalam segitiga = 180°. Sudut siku-siku = 90°. Dua sudut berpenyiku jumlahnya 90°, berpelurus jumlahnya 180°.",
+  contoh:"Contoh: sudut segitiga 50° dan 60°, sudut ketiga = 180° - 110° = 70°.",
+  soal:[["Dua sudut segitiga 50° dan 60°. Sudut ketiga?",["70°","80°","60°","110°"],0,"180 - 110 = 70°."],
+        ["Penyiku sudut 30° adalah?",["150°","60°","90°","30°"],1,"90 - 30 = 60°."],
+        ["Pelurus sudut 120° adalah?",["60°","30°","90°","240°"],0,"180 - 120 = 60°."]]}
+],
+"8|Matematika":[
+ {judul:"Teorema Pythagoras", kata:["pythagoras","segitiga siku","sisi miring","hipotenusa"],
+  teks:"Pada segitiga siku-siku berlaku a² + b² = c², dengan c adalah sisi miring (sisi terpanjang, di depan sudut siku-siku).",
+  contoh:"Contoh: sisi siku 3 dan 4. c² = 9 + 16 = 25, jadi c = 5.",
+  soal:[["Sisi siku 3 dan 4. Sisi miringnya?",["5","7","6","12"],0,"9 + 16 = 25, akar dari 25 adalah 5."],
+        ["Sisi siku 6 dan 8. Sisi miringnya?",["14","10","12","9"],1,"36 + 64 = 100, akarnya 10."],
+        ["Sisi siku 5 dan 12. Sisi miringnya?",["17","11","13","15"],2,"25 + 144 = 169, akarnya 13."]]},
+ {judul:"Lingkaran", kata:["lingkaran","jari-jari","diameter","phi"],
+  teks:"Diameter = 2 × jari-jari (r). Keliling = 2πr. Luas = πr². Pakai π = 22/7 atau 3,14.",
+  contoh:"Contoh: r = 7, keliling = 2 × 22/7 × 7 = 44, luas = 22/7 × 49 = 154.",
+  soal:[["r = 7, π = 22/7. Keliling?",["44","22","154","14"],0,"2 × 22/7 × 7 = 44."],
+        ["r = 7, π = 22/7. Luas?",["44","154","49","22"],1,"22/7 × 7 × 7 = 154."],
+        ["Diameter 20, jari-jarinya?",["40","20","10","5"],2,"20 ÷ 2 = 10."]]},
+ {judul:"Kubus dan Balok", kata:["kubus","balok","volume","bangun ruang"],
+  teks:"Volume kubus = rusuk³. Volume balok = p × l × t. Luas permukaan kubus = 6 × rusuk².",
+  contoh:"Contoh: balok 5 × 4 × 3 punya volume 60.",
+  soal:[["Volume kubus rusuk 3?",["9","27","18","12"],1,"3 × 3 × 3 = 27."],
+        ["Volume balok 6 × 2 × 4?",["12","24","48","36"],2,"6 × 2 × 4 = 48."],
+        ["Luas permukaan kubus rusuk 2?",["24","12","8","16"],0,"6 × 2 × 2 = 24."]]},
+ {judul:"Statistika (Mean, Median, Modus)", kata:["mean","median","modus","statistika","rata-rata"],
+  teks:"Mean = jumlah data ÷ banyak data. Median = nilai tengah setelah data diurutkan. Modus = nilai yang paling sering muncul.",
+  contoh:"Contoh: data 2, 4, 4, 6, 9. Mean 5, median 4, modus 4.",
+  soal:[["Mean dari 4, 6, 8?",["5","6","7","8"],1,"(4+6+8) ÷ 3 = 6."],
+        ["Median dari 3, 9, 5?",["3","5","9","6"],1,"Urut: 3, 5, 9. Tengahnya 5."],
+        ["Modus dari 2, 3, 3, 4, 5, 3?",["3","2","5","4"],0,"Angka 3 muncul paling sering."]]},
+ {judul:"SPLDV", kata:["spldv","sistem persamaan","eliminasi","substitusi"],
+  teks:"SPLDV adalah dua persamaan dengan dua variabel. Cara: eliminasi (hilangkan satu variabel) atau substitusi (masukkan satu persamaan ke yang lain).",
+  contoh:"Contoh: x + y = 5 dan x - y = 1. Dijumlah: 2x = 6, x = 3, y = 2.",
+  soal:[["x + y = 7 dan x - y = 1. Nilai x?",["3","4","5","6"],1,"Dijumlah: 2x = 8, x = 4."],
+        ["x + y = 7 dan x - y = 1. Nilai y?",["3","4","2","6"],0,"y = 7 - 4 = 3."],
+        ["x + y = 10 dan x - y = 2. Nilai x?",["6","4","8","12"],0,"2x = 12, x = 6."]]}
+],
+"9|Matematika":[
+ {judul:"Bilangan Berpangkat", kata:["pangkat","eksponen","berpangkat"],
+  teks:"aⁿ artinya a dikalikan dirinya sendiri sebanyak n kali. Aturan: aᵐ × aⁿ = aᵐ⁺ⁿ, dan a⁰ = 1 (untuk a bukan nol).",
+  contoh:"Contoh: 2³ = 2 × 2 × 2 = 8. Lalu 2² × 2³ = 2⁵ = 32.",
+  soal:[["2³ = ?",["6","8","9","5"],1,"2 × 2 × 2 = 8."],
+        ["5⁰ = ?",["0","5","1","10"],2,"Bilangan apa pun (selain 0) pangkat 0 hasilnya 1."],
+        ["2² × 2³ = ?",["32","10","12","64"],0,"Pangkat dijumlah: 2⁵ = 32."]]},
+ {judul:"Persamaan Kuadrat", kata:["kuadrat","akar","faktor"],
+  teks:"Persamaan kuadrat berbentuk ax² + bx + c = 0. Akarnya bisa dicari dengan memfaktorkan.",
+  contoh:"Contoh: x² - 5x + 6 = 0, jadi (x - 2)(x - 3) = 0, sehingga x = 2 atau x = 3.",
+  soal:[["Salah satu akar x² - 5x + 6 = 0 adalah?",["1","2","6","-2"],1,"Akarnya 2 dan 3."],
+        ["Akar x² - 9 = 0 adalah?",["3 dan -3","9 saja","3 saja","0"],0,"x² = 9, jadi x = 3 atau -3."],
+        ["(x - 1)(x - 4) = 0 akarnya?",["-1 dan -4","1 dan 4","1 dan -4","4 saja"],1,"x - 1 = 0 atau x - 4 = 0."]]},
+ {judul:"Tabung", kata:["tabung","sisi lengkung","selimut"],
+  teks:"Volume tabung = πr²t. Luas selimut = 2πrt. Luas permukaan = 2πr(r + t).",
+  contoh:"Contoh: r = 7, t = 10, π = 22/7. Volume = 22/7 × 49 × 10 = 1.540.",
+  soal:[["r = 7, t = 10, π = 22/7. Volume?",["1.540","154","440","3.080"],0,"22/7 × 7 × 7 × 10 = 1.540."],
+        ["r = 7, t = 10, π = 22/7. Luas selimut?",["440","154","1.540","220"],0,"2 × 22/7 × 7 × 10 = 440."],
+        ["r = 10, t = 2, π = 3,14. Volume?",["628","314","62,8","1.256"],0,"3,14 × 100 × 2 = 628."]]},
+ {judul:"Peluang", kata:["peluang","dadu","koin"],
+  teks:"Peluang = banyak kejadian yang diinginkan ÷ banyak semua kemungkinan. Nilainya antara 0 dan 1.",
+  contoh:"Contoh: peluang muncul angka 6 pada satu dadu = 1/6.",
+  soal:[["Peluang muncul genap pada satu dadu?",["1/6","1/3","1/2","2/3"],2,"Genap: 2, 4, 6, jadi 3/6 = 1/2."],
+        ["Peluang muncul angka pada satu koin?",["1/2","1","1/4","0"],0,"1 dari 2 sisi."],
+        ["3 bola merah dan 2 biru. Peluang ambil merah?",["2/5","3/5","1/5","5/3"],1,"3 merah dari 5 bola."]]}
+],
+"8|IPA":[
+ {judul:"Getaran dan Gelombang", kata:["getaran","gelombang","frekuensi","periode","hertz"],
+  teks:"Frekuensi (f) = banyak getaran ÷ waktu, satuannya Hertz (Hz). Periode (T) = 1 ÷ f. Cepat rambat gelombang v = panjang gelombang × frekuensi.",
+  contoh:"Contoh: 10 getaran dalam 2 detik, frekuensinya 10 ÷ 2 = 5 Hz.",
+  soal:[["10 getaran dalam 2 detik. Frekuensinya?",["5 Hz","20 Hz","12 Hz","0,2 Hz"],0,"10 ÷ 2 = 5 Hz."],
+        ["Frekuensi 4 Hz. Periodenya?",["4 s","0,25 s","0,4 s","2 s"],1,"T = 1 ÷ 4 = 0,25 s."],
+        ["Panjang gelombang 2 m, frekuensi 5 Hz. Cepat rambatnya?",["7 m/s","3 m/s","10 m/s","2,5 m/s"],2,"v = 2 × 5 = 10 m/s."]]},
+ {judul:"Gaya dan Hukum Newton", kata:["newton","gaya","massa","percepatan"],
+  teks:"Hukum Newton II: F = m × a. F gaya (newton), m massa (kg), a percepatan (m/s²).",
+  contoh:"Contoh: massa 2 kg dengan percepatan 3 m/s² butuh gaya 6 N.",
+  soal:[["m = 2 kg, a = 3 m/s². Gaya F?",["5 N","6 N","1,5 N","9 N"],1,"2 × 3 = 6 N."],
+        ["F = 20 N, m = 4 kg. Percepatan a?",["80 m/s²","16 m/s²","5 m/s²","24 m/s²"],2,"20 ÷ 4 = 5."],
+        ["F = 10 N, a = 2 m/s². Massa m?",["20 kg","12 kg","8 kg","5 kg"],3,"10 ÷ 2 = 5 kg."]]},
+ {judul:"Sistem Pencernaan", kata:["pencernaan","lambung","usus","enzim"],
+  teks:"Urutan makanan: mulut, kerongkongan, lambung, usus halus, usus besar, anus. Penyerapan sari makanan terjadi di usus halus.",
+  contoh:"Contoh: pati mulai dicerna di mulut oleh enzim ptialin dalam air liur.",
+  soal:[["Penyerapan sari makanan terjadi di?",["Lambung","Usus halus","Usus besar","Kerongkongan"],1,"Usus halus menyerap sari makanan."],
+        ["Pencernaan pati dimulai di?",["Mulut","Lambung","Usus besar","Anus"],0,"Enzim ptialin ada di air liur."],
+        ["Setelah kerongkongan, makanan menuju?",["Usus halus","Mulut","Lambung","Anus"],2,"Kerongkongan menyambung ke lambung."]]},
+ {judul:"Tekanan", kata:["tekanan","pascal","luas bidang"],
+  teks:"Tekanan P = F ÷ A (gaya dibagi luas bidang), satuannya pascal (Pa). Makin kecil luas bidang tekan, makin besar tekanannya.",
+  contoh:"Contoh: F = 100 N pada luas 2 m² memberi tekanan 50 Pa.",
+  soal:[["F = 100 N, A = 2 m². Tekanan?",["50 Pa","200 Pa","98 Pa","102 Pa"],0,"100 ÷ 2 = 50 Pa."],
+        ["F = 60 N, A = 3 m². Tekanan?",["180 Pa","20 Pa","63 Pa","57 Pa"],1,"60 ÷ 3 = 20 Pa."],
+        ["Pisau tajam menekan lebih kuat karena luas bidangnya?",["lebih besar","lebih kecil","sama","nol"],1,"Luas kecil membuat tekanan besar."]]}
+],
+"9|IPA":[
+ {judul:"Hukum Ohm (Listrik)", kata:["ohm","listrik","tegangan","hambatan","kuat arus"],
+  teks:"Hukum Ohm: V = I × R. V tegangan (volt), I kuat arus (ampere), R hambatan (ohm, Ω).",
+  contoh:"Contoh: arus 2 A melewati hambatan 5 Ω, tegangannya 2 × 5 = 10 V.",
+  soal:[["I = 2 A, R = 5 Ω. Tegangan V?",["10 V","7 V","2,5 V","3 V"],0,"V = 2 × 5 = 10 V."],
+        ["V = 12 V, R = 4 Ω. Kuat arus I?",["48 A","8 A","3 A","16 A"],2,"I = 12 ÷ 4 = 3 A."],
+        ["V = 20 V, I = 4 A. Hambatan R?",["80 Ω","16 Ω","24 Ω","5 Ω"],3,"R = 20 ÷ 4 = 5 Ω."]]},
+ {judul:"Pewarisan Sifat", kata:["mendel","genetika","gen","dominan","resesif","pewarisan"],
+  teks:"Gen membawa sifat dari induk ke keturunan. Alel dominan (huruf besar) menutupi alel resesif (huruf kecil). Persilangan Aa × Aa menghasilkan AA, Aa, Aa, aa.",
+  contoh:"Contoh: rasio fenotip dominan : resesif = 3 : 1.",
+  soal:[["Genotip Aa dengan A dominan tampak sebagai sifat?",["Resesif","Dominan","Campuran","Tidak tampak"],1,"Alel dominan menutupi resesif."],
+        ["Persilangan Aa × Aa. Persen keturunan aa?",["25%","50%","75%","0%"],0,"1 dari 4 = 25%."],
+        ["Rasio fenotip Aa × Aa?",["1 : 1","3 : 1","2 : 1","4 : 0"],1,"3 dominan : 1 resesif."]]},
+ {judul:"Kemagnetan", kata:["magnet","kutub","elektromagnet","kemagnetan"],
+  teks:"Magnet punya kutub utara dan selatan. Kutub sejenis tolak-menolak, kutub berbeda tarik-menarik. Elektromagnet adalah magnet yang timbul dari arus listrik.",
+  contoh:"Contoh: kutub utara dan kutub selatan saling tarik-menarik.",
+  soal:[["Kutub utara dengan kutub utara akan?",["Tarik","Tolak","Diam","Menyatu"],1,"Sejenis tolak-menolak."],
+        ["Kutub utara dan selatan akan?",["Tolak","Tarik-menarik","Tidak ada gaya","Putus"],1,"Berbeda kutub tarik-menarik."],
+        ["Elektromagnet membutuhkan?",["Arus listrik","Air","Cahaya","Panas"],0,"Arus listrik menimbulkan medan magnet."]]}
+],
+"7|IPA":[
+ {judul:"Klasifikasi Makhluk Hidup", kata:["klasifikasi","hewan","vertebrata","invertebrata"],
+  teks:"Makhluk hidup dikelompokkan menurut ciri. Hewan bertulang belakang disebut vertebrata (ikan, amfibi, reptil, burung, mamalia). Yang tanpa tulang belakang disebut invertebrata.",
+  contoh:"Contoh: kucing dan ayam vertebrata, cacing dan serangga invertebrata.",
+  soal:[["Hewan yang menyusui anaknya?",["Ikan","Mamalia","Reptil","Amfibi"],1,"Mamalia menyusui anaknya."],
+        ["Katak termasuk?",["Reptil","Mamalia","Amfibi","Burung"],2,"Katak hidup di dua alam: amfibi."],
+        ["Contoh invertebrata?",["Kucing","Ayam","Ular","Cacing"],3,"Cacing tidak punya tulang belakang."]]},
+ {judul:"Suhu dan Kalor", kata:["suhu","kalor","termometer","celsius","kelvin"],
+  teks:"Suhu menunjukkan derajat panas. Air membeku pada 0°C dan mendidih pada 100°C. Kalor adalah energi panas yang berpindah dari benda panas ke benda dingin. Kelvin = Celsius + 273.",
+  contoh:"Contoh: 20°C = 293 K.",
+  soal:[["Titik didih air?",["0°C","50°C","100°C","200°C"],2,"Air mendidih pada 100°C."],
+        ["30°C sama dengan berapa Kelvin?",["303 K","273 K","330 K","243 K"],0,"30 + 273 = 303 K."],
+        ["Kalor berpindah dari?",["dingin ke panas","panas ke dingin","tidak berpindah","dingin ke dingin"],1,"Kalor mengalir dari panas ke dingin."]]},
+ {judul:"Zat dan Wujudnya", kata:["zat","wujud","massa jenis","padat","cair","gas"],
+  teks:"Wujud zat: padat, cair, gas. Massa jenis = massa ÷ volume. Perubahan wujud: mencair, membeku, menguap, mengembun, menyublim.",
+  contoh:"Contoh: massa 200 g dan volume 100 cm³, massa jenisnya 2 g/cm³.",
+  soal:[["Es menjadi air disebut?",["Membeku","Menguap","Mencair","Mengembun"],2,"Padat ke cair disebut mencair."],
+        ["Massa 300 g, volume 100 cm³. Massa jenis?",["3 g/cm³","30 g/cm³","0,3 g/cm³","200 g/cm³"],0,"300 ÷ 100 = 3."],
+        ["Uap menjadi air disebut?",["Mengembun","Menguap","Menyublim","Membeku"],0,"Gas ke cair disebut mengembun."]]}
+]
+};
+
+var TAMBAH = {
+"8|Matematika":[
+ {judul:"Sistem Persamaan Linear Dua Variabel", kata:["spldv","dua variabel","eliminasi","substitusi"],
+  teks:"SPLDV adalah dua persamaan dengan dua variabel (misalnya x dan y). Cara menyelesaikan: eliminasi (menjumlah atau mengurangkan persamaan agar satu variabel hilang) atau substitusi (mengganti variabel).",
+  contoh:"Contoh: x + y = 5 dan x - y = 1. Dijumlahkan: 2x = 6, jadi x = 3 dan y = 2.",
+  soal:[["x + y = 7 dan x - y = 3. Nilai x?",["5","4","2","10"],0,"Dijumlah: 2x = 10, jadi x = 5."],
+        ["x + y = 10 dan x = 6. Nilai y?",["16","4","6","60"],1,"y = 10 - 6 = 4."],
+        ["2x + y = 8 dan y = 2. Nilai x?",["4","5","3","10"],2,"2x = 6, jadi x = 3."]]},
+ {judul:"Keliling dan Luas Lingkaran", kata:["lingkaran","jari-jari","diameter","phi","pi"],
+  teks:"Keliling lingkaran = 2 × π × r. Luas lingkaran = π × r × r. Nilai π = 22/7 atau 3,14. Diameter = 2 × jari-jari.",
+  contoh:"Contoh: r = 7 dengan π = 22/7. Keliling = 2 × 22/7 × 7 = 44.",
+  soal:[["r = 7, π = 22/7. Keliling?",["22","44","154","49"],1,"2 × 22/7 × 7 = 44."],
+        ["r = 7, π = 22/7. Luas?",["44","49","154","22"],2,"22/7 × 7 × 7 = 154."],
+        ["Diameter 20, π = 3,14. Keliling?",["31,4","314","62,8","6,28"],2,"r = 10, keliling = 2 × 3,14 × 10 = 62,8."]]}
+],
+"9|Matematika":[
+ {judul:"Persamaan Kuadrat", kata:["kuadrat","faktorisasi","akar"],
+  teks:"Persamaan kuadrat berbentuk ax² + bx + c = 0. Salah satu cara mencari akarnya adalah faktorisasi: ubah menjadi perkalian dua kurung, lalu setiap kurung dibuat sama dengan nol.",
+  contoh:"Contoh: x² - 5x + 6 = 0 menjadi (x - 2)(x - 3) = 0, jadi x = 2 atau x = 3.",
+  soal:[["Akar dari x² - 5x + 6 = 0?",["2 dan 3","1 dan 6","-2 dan -3","5 dan 6"],0,"(x - 2)(x - 3) = 0."],
+        ["Akar dari x² - 9 = 0?",["3 saja","9 dan -9","3 dan -3","0 dan 3"],2,"x² = 9, jadi x = 3 atau x = -3."],
+        ["Akar dari x² - x - 6 = 0?",["3 dan -2","2 dan -3","6 dan -1","-3 dan -2"],0,"(x - 3)(x + 2) = 0."]]},
+ {judul:"Statistika: Mean, Median, Modus", kata:["statistika","mean","median","modus","rata-rata"],
+  teks:"Mean (rata-rata) = jumlah data ÷ banyak data. Median = nilai tengah setelah data diurutkan. Modus = nilai yang paling sering muncul.",
+  contoh:"Contoh: data 2, 4, 4, 6, 9. Mean = 25 ÷ 5 = 5, median = 4, modus = 4.",
+  soal:[["Mean dari 2, 4, 6?",["3","4","5","6"],1,"(2 + 4 + 6) ÷ 3 = 4."],
+        ["Median dari 3, 5, 7, 9, 11?",["5","9","7","6"],2,"Nilai tengah dari 5 data adalah data ke-3, yaitu 7."],
+        ["Modus dari 1, 2, 2, 3, 2?",["1","2","3","5"],1,"Angka 2 muncul paling sering."]]}
+],
+"10|Matematika":[
+ {judul:"Trigonometri Dasar", kata:["trigonometri","sin","cos","tan","sinus","cosinus","tangen"],
+  teks:"Pada segitiga siku-siku: sin = sisi depan ÷ sisi miring, cos = sisi samping ÷ sisi miring, tan = sisi depan ÷ sisi samping (terhadap sudut yang ditinjau).",
+  contoh:"Contoh: segitiga 3-4-5 dengan sudut A (depan 3, samping 4, miring 5). sin A = 3/5.",
+  soal:[["Depan 3, samping 4, miring 5. sin A?",["3/5","4/5","3/4","5/3"],0,"sin = depan/miring = 3/5."],
+        ["Depan 3, samping 4, miring 5. cos A?",["3/5","4/5","4/3","5/4"],1,"cos = samping/miring = 4/5."],
+        ["Depan 3, samping 4, miring 5. tan A?",["4/3","3/5","3/4","4/5"],2,"tan = depan/samping = 3/4."]]}
+],
+"11|Matematika":[
+ {judul:"Barisan Geometri", kata:["geometri","rasio","barisan geometri"],
+  teks:"Barisan geometri punya rasio (r) tetap, yaitu pengali dari suku ke suku. Rumus suku ke-n: Uₙ = a × rⁿ⁻¹.",
+  contoh:"Contoh: 2, 4, 8, ... punya a = 2 dan r = 2. Suku ke-4 = 2 × 2³ = 16.",
+  soal:[["Barisan 2, 4, 8, ... Suku ke-5?",["16","32","10","64"],1,"2 × 2⁴ = 32."],
+        ["Rasio barisan 3, 6, 12, ...?",["2","3","4","6"],0,"6 ÷ 3 = 2."],
+        ["a = 1 dan r = 3. Suku ke-4?",["12","9","27","81"],2,"1 × 3³ = 27."]]}
+],
+"12|Matematika":[
+ {judul:"Turunan Dasar", kata:["turunan","derivatif","diferensial"],
+  teks:"Turunan fungsi f(x) = xⁿ adalah f'(x) = n × xⁿ⁻¹. Konstanta di depan ikut dikalikan, dan turunan bilangan tetap adalah 0.",
+  contoh:"Contoh: turunan x⁴ adalah 4x³.",
+  soal:[["Turunan dari x² adalah?",["x","2x","x²","2"],1,"n = 2, jadi 2 × x¹ = 2x."],
+        ["Turunan dari 3x² adalah?",["6x","3x","6x²","3"],0,"3 × 2x = 6x."],
+        ["Turunan dari x³ adalah?",["x²","3x","3x²","x⁴"],2,"3 × x² = 3x²."]]}
+]
+};
+for (var kk in TAMBAH) ISI[kk] = (ISI[kk] || []).concat(TAMBAH[kk]);
+
+var TAMBAH2 = {
+"10|Matematika":[
+ {judul:"Logaritma Dasar", kata:["logaritma","log"],
+  teks:"Logaritma adalah kebalikan pangkat. log₂ 8 = 3 artinya 2 pangkat berapa hasilnya 8? Jawabannya 3, karena 2³ = 8.",
+  contoh:"Contoh: log₁₀ 1000 = 3, karena 10³ = 1000.",
+  soal:[["log₂ 8 = ?",["2","3","4","8"],1,"2³ = 8, jadi hasilnya 3."],
+        ["log₁₀ 100 = ?",["10","1","2","100"],2,"10² = 100, jadi hasilnya 2."],
+        ["log₃ 9 = ?",["2","3","9","1"],0,"3² = 9, jadi hasilnya 2."]]}
+],
+"11|Matematika":[
+ {judul:"Barisan Aritmetika", kata:["aritmetika","barisan","suku","beda"],
+  teks:"Barisan aritmetika punya beda tetap. Rumus suku ke-n: Uₙ = a + (n - 1) × b, dengan a suku pertama dan b beda.",
+  contoh:"Contoh: 2, 5, 8, ... punya a = 2 dan b = 3. Suku ke-5 = 2 + 4 × 3 = 14.",
+  soal:[["Barisan 2, 5, 8, ... Suku ke-5?",["14","11","17","15"],0,"2 + 4 × 3 = 14."],
+        ["Barisan 3, 5, 7, ... Suku ke-10?",["19","23","21","20"],2,"3 + 9 × 2 = 21."],
+        ["a = 1 dan b = 4. Suku ke-4?",["9","13","17","12"],1,"1 + 3 × 4 = 13."]]}
+],
+"12|Matematika":[
+ {judul:"Peluang Dasar", kata:["peluang","probabilitas","dadu","koin"],
+  teks:"Peluang = banyak kejadian yang diinginkan ÷ banyak semua kemungkinan. Nilainya antara 0 dan 1.",
+  contoh:"Contoh: peluang muncul angka 6 pada satu dadu = 1/6.",
+  soal:[["Peluang angka genap pada satu dadu?",["1/6","1/3","1/2","2/3"],2,"Genap: 2, 4, 6 dari 6, jadi 1/2."],
+        ["Peluang angka pada satu koin?",["1/2","1","1/4","0"],0,"1 dari 2 sisi."],
+        ["3 bola merah, 2 biru. Peluang ambil merah?",["2/5","3/5","1/5","5/3"],1,"3 dari 5 bola."]]}
+],
+"10|Fisika":[
+ {judul:"Gerak Lurus Beraturan", kata:["glb","gerak lurus","kecepatan","jarak","waktu"],
+  teks:"Pada GLB kecepatan tetap. Jarak s = v × t, kecepatan v = s ÷ t, waktu t = s ÷ v.",
+  contoh:"Contoh: v = 5 m/s selama 10 s menempuh 50 m.",
+  soal:[["v = 5 m/s, t = 10 s. Jarak?",["15 m","50 m","2 m","500 m"],1,"5 × 10 = 50 m."],
+        ["Jarak 100 m ditempuh 20 s. Kecepatan?",["5 m/s","80 m/s","2000 m/s","120 m/s"],0,"100 ÷ 20 = 5 m/s."],
+        ["v = 10 m/s, jarak 100 m. Waktu?",["1 s","1000 s","10 s","110 s"],2,"100 ÷ 10 = 10 s."]]}
+],
+"11|Fisika":[
+ {judul:"Hukum Newton II", kata:["newton","gaya","massa","percepatan"],
+  teks:"Hukum Newton II: F = m × a. Gaya (N), massa (kg), percepatan (m/s²). Makin besar gaya, makin besar percepatan.",
+  contoh:"Contoh: m = 2 kg dan a = 3 m/s² butuh gaya 6 N.",
+  soal:[["m = 2 kg, a = 3 m/s². Gaya?",["5 N","6 N","1,5 N","9 N"],1,"2 × 3 = 6 N."],
+        ["F = 20 N, m = 4 kg. Percepatan?",["80 m/s²","16 m/s²","5 m/s²","24 m/s²"],2,"20 ÷ 4 = 5."],
+        ["F = 10 N, a = 2 m/s². Massa?",["20 kg","12 kg","8 kg","5 kg"],3,"10 ÷ 2 = 5 kg."]]}
+],
+"12|Fisika":[
+ {judul:"Hambatan Seri dan Paralel", kata:["seri","paralel","rangkaian","hambatan"],
+  teks:"Seri: hambatan dijumlah. Paralel dengan dua hambatan sama besar: hasilnya setengah dari satu hambatan.",
+  contoh:"Contoh: 3 Ω dan 5 Ω seri menjadi 8 Ω.",
+  soal:[["Seri 3 Ω dan 5 Ω. Total?",["8 Ω","15 Ω","2 Ω","1,9 Ω"],0,"3 + 5 = 8 Ω."],
+        ["Dua hambatan 6 Ω paralel. Total?",["12 Ω","6 Ω","3 Ω","1 Ω"],2,"Setengahnya: 3 Ω."],
+        ["Seri 2 Ω, 4 Ω, 6 Ω. Total?",["12 Ω","8 Ω","48 Ω","3 Ω"],0,"2 + 4 + 6 = 12 Ω."]]}
+],
+"10|Kimia":[
+ {judul:"Struktur Atom", kata:["atom","proton","neutron","elektron","nomor atom"],
+  teks:"Atom terdiri dari proton (positif), neutron (netral), dan elektron (negatif). Nomor atom = jumlah proton. Nomor massa = proton + neutron.",
+  contoh:"Contoh: nomor atom 6 dan nomor massa 12 berarti 6 proton dan 6 neutron.",
+  soal:[["Nomor atom 6. Jumlah proton?",["3","6","12","0"],1,"Nomor atom = jumlah proton."],
+        ["Nomor massa 12, proton 6. Neutron?",["6","18","12","0"],0,"12 - 6 = 6."],
+        ["Elektron bermuatan?",["positif","netral","negatif","tidak ada"],2,"Elektron bermuatan negatif."]]}
+],
+"10|Biologi":[
+ {judul:"Sel dan Organel", kata:["sel","organel","mitokondria","kloroplas","inti sel"],
+  teks:"Sel adalah satuan terkecil makhluk hidup. Inti sel mengatur aktivitas sel, mitokondria menghasilkan energi, kloroplas (tumbuhan) tempat fotosintesis.",
+  contoh:"Contoh: sel otot punya banyak mitokondria karena butuh banyak energi.",
+  soal:[["Organel penghasil energi?",["Kloroplas","Mitokondria","Ribosom","Dinding sel"],1,"Mitokondria."],
+        ["Tempat fotosintesis?",["Kloroplas","Mitokondria","Inti sel","Vakuola"],0,"Kloroplas."],
+        ["Pengendali aktivitas sel?",["Vakuola","Mitokondria","Inti sel","Lisosom"],2,"Inti sel."]]}
+]
+};
+for (var k2 in TAMBAH2) ISI[k2] = (ISI[k2] || []).concat(TAMBAH2[k2]);
+
+var app = document.getElementById("app");
+var P = {j:"",k:0,kur:"",m:"",t:0};
+var q = 0, skor = 0;
+var nilai = {};
+try { nilai = JSON.parse(localStorage.getItem("nilaiMike") || "{}"); } catch (e) {}
+function simpan(){ try { localStorage.setItem("nilaiMike", JSON.stringify(nilai)); } catch (e) {} }
+
+/* Menambahkan efek animasi pada setiap render halaman */
+function tampilkan(t){ 
+  app.innerHTML = "<div class='animasi-halaman'>" + t + "</div>"; 
+  window.scrollTo({ top: 0, behavior: 'smooth' }); 
+}
+
+function tombol(l,f,c){ return "<button class='btn "+(c||"")+"' onclick=\""+f+"\">"+l+"</button>"; }
+function daftarMateriList(){ return ISI[P.k+"|"+P.m]; }
+
+function sambutan(){
+  tampilkan("<h1>Halo para pejuang Cerdas! 🚀</h1>"+
+    "<div class='kotak'>Selamat datang di Tempat belajar Mike, disini semua gratis ya! 🎉 Siapkan dirimu untuk menjadi lebih pintar setiap hari.</div>"+
+    "<p style='font-size:18px; font-weight:bold;'>Ingin belajar? Tekan ini ya 👇</p>"+
+    tombol("Klik disini ✨","pilihJenjang()","biru"));
+}
+
+function pilihJenjang(){
+  var h = "<h2>Silakan pilih jenjang terlebih dahulu ya</h2>";
+  ["SMP","SMA"].forEach(function(j){ h += tombol("🎒 "+j,"pilihKelas('"+j+"')"); });
+  tampilkan(h+tombol("⬅ Kembali","sambutan()"));
+}
+
+function pilihKelas(j){
+  P.j = j;
+  var h = "<h2>Pilih Kelas "+j+"</h2><div class='kotak'>Silakan tentukan kamu kelas berapa agar materinya sesuai ya!</div>";
+  KELAS[j].forEach(function(k){ h += tombol("🏫 Kelas "+k,"pilihMapel("+k+")"); });
+  tampilkan(h+tombol("⬅ Kembali","pilihJenjang()"));
+}
+
+function pilihMapel(k){
+  P.k = k;
+  var h = "<h2>Pilih Mata Pelajaran</h2>"+
+          "<div class='kotak'>Kelas "+k+" "+P.j+"<br><span style='color:#38bdf8; font-weight:bold;'>(Kurikulum Merdeka dan 2013 jadi 1)</span></div>";
+  MAPEL[P.j].forEach(function(m){ h += tombol("📘 "+m,"daftarMateri('"+m+"')"); });
+  tampilkan(h+tombol("⬅ Kembali","pilihKelas('"+P.j+"')"));
+}
+
+function daftarMateri(m){
+  P.m = m;
+  var list = daftarMateriList();
+  var h = "<h2>📚 "+m+" (Kelas "+P.k+")</h2>";
+  if (!list) {
+    h += "<div class='kotak'>Materi untuk mata pelajaran ini masih disiapkan oleh Mike. Sabar ya! 🙏</div>";
+  } else {
+    h += "<div class='kotak'>Pilih materi yang ingin kamu pelajari hari ini:</div>";
+    list.forEach(function(t,i){
+      var n = nilai[P.k+m+i];
+      h += tombol(t.judul+(n!==undefined?" 🏆("+n+"/3)":""),"bukaMateri("+i+")", n===3?"ok":"");
+    });
+  }
+  tampilkan(h+tombol("⬅ Pilih Mapel Lain","pilihMapel("+P.k+")"));
+}
+
+function bukaMateri(i){
+  P.t = i;
+  var t = daftarMateriList()[i];
+  tampilkan("<h2>"+t.judul+"</h2>"+
+    "<div class='kotak'><b>Penjelasan:</b><br>"+t.teks+"</div>"+
+    "<div class='kotak'><b>Contoh:</b><br>"+t.contoh+"</div>"+
+    "<div class='kotak' style='text-align:center;'><b>Mau coba tes pemahaman?</b><br>Buktikan kalau kamu sudah mengerti!</div>"+
+    tombol("Klik disini 📝","mulaiTes()","biru")+
+    tombol("⬅ Kembali ke Daftar Materi","daftarMateri('"+P.m+"')"));
+}
+
+function mulaiTes(){ q = 0; skor = 0; tampilSoal(); }
+
+function tampilSoal(){
+  var t = daftarMateriList()[P.t], s = t.soal[q];
+  var h = "<h2>Soal Tes "+(q+1)+" / "+t.soal.length+"</h2><div class='kotak' style='font-size:18px;'><b>Pertanyaan:</b><br>"+s[0]+"</div>";
+  s[1].forEach(function(o,n){ h += tombol(o,"pilihJawab("+n+",this)"); });
+  tampilkan(h+"<div id='info'></div>");
+}
+
+function pilihJawab(n,el){
+  var t = daftarMateriList()[P.t], s = t.soal[q];
+  var btns = app.querySelectorAll(".btn");
+  btns.forEach(function(b){ b.onclick = null; b.style.opacity = "0.7"; }); // Matikan tombol lain
+  el.style.opacity = "1";
+  
+  var benar = n === s[2];
+  if (benar) { skor++; el.classList.add("benar"); }
+  else { el.classList.add("salah"); btns[s[2]].classList.add("benar"); btns[s[2]].style.opacity = "1"; }
+  
+  var akhir = q === t.soal.length-1;
+  document.getElementById("info").innerHTML =
+    "<div class='kotak animasi-halaman'><b>"+(benar?"✅ Jawabanmu Benar! ":"❌ Yah, belum tepat. ")+"</b><br>Penjelasan: "+s[3]+"</div>"+
+    tombol(akhir?"Selesai & Lihat Hasil 🏁":"Lanjut Soal Berikutnya ➡", akhir?"hasilTes()":"q++;tampilSoal()","biru");
+}
+
+function hasilTes(){
+  var t = daftarMateriList()[P.t], key = P.k+P.m+P.t;
+  if (nilai[key]===undefined || skor>nilai[key]) nilai[key] = skor;
+  simpan();
+  var salah = t.soal.length - skor;
+  
+  var pesanSempurna = "Luar biasa! Semua jawabanmu benar. Kamu memang cerdas! 🔥";
+  var pesanSalah = "Masih ada "+salah+" soal yang salah. Jangan menyerah, baca lagi materinya dan coba lagi pas di akhir. Kamu pasti bisa! 💪";
+  var pesan = salah === 0 ? pesanSempurna : pesanSalah;
+  
+  tampilkan("<h1>Skor Akhir: "+skor+" / "+t.soal.length+"</h1>"+
+    "<div class='kotak' style='text-align:center;'>"+pesan+"</div>"+
+    (salah>0 ? tombol("🔁 Coba Lagi Sekarang","mulaiTes()","biru") : "")+
+    "<div class='kotak' style='text-align:center; color:#38bdf8;'>Terima kasih telah mampir di Tempat Belajar Mike! Jangan lelah untuk terus belajar ya! 🙏</div>"+
+    tombol("📖 Baca Materi Lagi","bukaMateri("+P.t+")")+
+    tombol("📚 Pilih Materi Lain","daftarMateri('"+P.m+"')")+
+    tombol("🏠 Kembali ke Beranda","sambutan()"));
+}
+
+function tanyaTutor(){
+  var teks = document.getElementById("tanya").value.toLowerCase();
+  var out = document.getElementById("jawabTutor");
+  if (!teks) { out.innerHTML = "<i>Tulis dulu pertanyaannya di kotak ya.</i>"; return; }
+  var temu = null;
+  for (var key in ISI) ISI[key].forEach(function(t){
+    t.kata.forEach(function(w){ if (teks.indexOf(w)!==-1) temu = t; });
+  });
+  
+  out.className = "kotak animasi-halaman";
+  out.innerHTML = temu ? "<b>"+temu.judul+"</b><br>"+temu.teks+"<br><i>"+temu.contoh+"</i>"
+    : "Wah, sepertinya belum ada materi tentang itu. Coba kata kunci seperti: <b>pecahan</b>, <b>persen</b>, <b>aljabar</b>, atau <b>peluang</b>.";
+}
+
+// Mulai aplikasi
+sambutan();
+</script>
+</body>
+</html>
